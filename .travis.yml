@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t mishka245/react-test -f ./client/Dockerfile.dev ./client
+
+
+script:
+  - docker run -e CI=true mishka245/react-test npm test
+
+
+after_success:
+  - docker build -t mishka245/mca-client ./client
+  - docker build -t mishka245/mca-nginx ./nginx
+  - docker build -t mishka245/mca-server ./server
+  - docker build -t mishka245/mca-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push images on docker hub
+  - docker push mishka245/mca-client
+  - docker push mishka245/mca-nginx
+  - docker push mishka245/mca-server
+  - docker push mishka245/mca-worker
